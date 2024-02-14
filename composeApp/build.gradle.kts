@@ -39,7 +39,14 @@ compose.desktop {
         mainClass = "MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            targetFormats(
+                TargetFormat.Msi,
+                TargetFormat.Dmg,
+                TargetFormat.Pkg,
+                TargetFormat.Deb,
+                TargetFormat.Rpm,
+                TargetFormat.AppImage
+            )
             packageName = "com.github.megabyte6.ninjatokenatm"
             packageVersion = "1.0.0"
         }

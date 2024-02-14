@@ -10,8 +10,7 @@ fun main() {
     application {
         Window(
             onCloseRequest = ::exitApplication,
-            title = Constants.APP_NAME,
-            alwaysOnTop = true
+            title = Constants.APP_NAME
         ) {
             App()
         }

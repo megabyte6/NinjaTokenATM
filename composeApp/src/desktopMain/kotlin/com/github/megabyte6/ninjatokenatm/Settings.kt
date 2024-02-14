@@ -1,3 +1,5 @@
+package com.github.megabyte6.ninjatokenatm
+
 import kotlinx.serialization.Serializable
 import org.apache.poi.EmptyFileException
 import org.apache.poi.EncryptedDocumentException
@@ -17,7 +19,8 @@ data class Settings(
     var ninjaNameColumn: String = "",
     var ninjaBalanceColumn: String = "",
     var rfidLength: Int = 0,
-    var rfidScannerHitsEnter: Boolean = true
+    var rfidScannerHitsEnter: Boolean = true,
+    var darkTheme: Boolean = true
 ) {
     /**
      * @throws FileNotFoundException if the ninjaTokenWorkbookPath passed does not exist nor points to a file

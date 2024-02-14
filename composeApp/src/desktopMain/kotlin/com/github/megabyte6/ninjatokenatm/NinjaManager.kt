@@ -1,3 +1,5 @@
+package com.github.megabyte6.ninjatokenatm
+
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.usermodel.Sheet
@@ -46,7 +48,7 @@ class NinjaManager(val settings: Settings) {
         cache[rfid]?.let { ninjaTokenSheet.getRow(it) } ?: findRowByRFID(rfid)
 
     fun findName(rfid: String) =
-        findCachedRowByRFID(rfid)?.stringContentsOfCell(ninjaNameColumn) ?: "Hmm... I don't know this one"
+        findCachedRowByRFID(rfid)?.stringContentsOfCell(ninjaNameColumn) ?: Strings.INVALID_RFID_MESSAGE
 
     fun findBalance(rfid: String) =
         findCachedRowByRFID(rfid)?.stringContentsOfCell(ninjaBalanceColumn)?.toDoubleOrNull()?.toInt() ?: 0

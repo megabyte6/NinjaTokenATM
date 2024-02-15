@@ -47,8 +47,25 @@ compose.desktop {
                 TargetFormat.Rpm,
                 TargetFormat.AppImage
             )
-            packageName = "com.github.megabyte6.ninjatokenatm"
+            packageName = "Ninja Token ATM"
             packageVersion = "1.0.0"
+            description = "Displays the number of tokens in a Ninja's bank account."
+            copyright = "© 2024 megabyte6. All rights reserved."
+            licenseFile = project.file("../LICENSE")
+
+            windows {
+                iconFile = project.file("src/desktopMain/resources/icon.ico")
+                dirChooser = true
+            }
+
+            macOS {
+                iconFile = project.file("src/desktopMain/resources/icon.icns")
+            }
+
+            linux {
+                iconFile = project.file("src/desktopMain/resources/icon.png")
+                packageName = "ninja-token-atm"
+            }
         }
     }
 }

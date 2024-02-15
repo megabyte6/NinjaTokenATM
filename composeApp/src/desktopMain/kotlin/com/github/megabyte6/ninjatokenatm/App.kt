@@ -32,7 +32,7 @@ private val json = Json {
 }
 
 @Composable
-fun App() {
+fun App(isRunning: MutableState<Boolean> = mutableStateOf(true)) {
     val settingsFile = File("settings.json")
     val settings = loadSettings(settingsFile)
     if (settings == null) {
@@ -42,6 +42,7 @@ fun App() {
             Constants.APP_NAME,
             JOptionPane.INFORMATION_MESSAGE
         )
+        isRunning.value = false
         return
     }
 

@@ -48,8 +48,8 @@ compose.desktop {
             packageName = "Ninja Token ATM"
             packageVersion = "1.0.0"
             description = "Ninja Token ATM"
-            vendor = "megabyte6"
-            copyright = "© 2024 megabyte6. All rights reserved."
+            vendor = "Brayden Chan"
+            copyright = "© 2024 Brayden Chan. All rights reserved."
             licenseFile = project.file("../LICENSE")
 
             windows {

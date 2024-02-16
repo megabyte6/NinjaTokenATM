@@ -42,10 +42,8 @@ compose.desktop {
             targetFormats(
                 TargetFormat.Msi,
                 TargetFormat.Dmg,
-                TargetFormat.Pkg,
                 TargetFormat.Deb,
-                TargetFormat.Rpm,
-                TargetFormat.AppImage
+                TargetFormat.Rpm
             )
             packageName = "Ninja Token ATM"
             packageVersion = "1.0.0"

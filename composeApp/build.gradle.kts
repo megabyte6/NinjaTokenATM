@@ -50,12 +50,15 @@ compose.desktop {
             packageName = "Ninja Token ATM"
             packageVersion = "1.0.0"
             description = "Displays the number of tokens in a Ninja's bank account."
+            vendor = "megabyte6"
             copyright = "© 2024 megabyte6. All rights reserved."
             licenseFile = project.file("../LICENSE")
 
             windows {
                 iconFile = project.file("src/desktopMain/resources/icon.ico")
+                menuGroup = "Ninja Token ATM"
                 dirChooser = true
+                perUserInstall = true
             }
 
             macOS {

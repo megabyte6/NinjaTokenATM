@@ -49,7 +49,7 @@ compose.desktop {
             )
             packageName = "Ninja Token ATM"
             packageVersion = "1.0.0"
-            description = "Displays the number of tokens in a Ninja's bank account."
+            description = "Ninja Token ATM"
             vendor = "megabyte6"
             copyright = "© 2024 megabyte6. All rights reserved."
             licenseFile = project.file("../LICENSE")

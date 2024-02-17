@@ -31,17 +31,13 @@ private val json = Json {
     prettyPrint = true
 }
 
+private val settingsFile = File("settings.json")
+private var settings: Settings? = null
+
 @Composable
 fun App(isRunning: MutableState<Boolean> = mutableStateOf(true)) {
-    val settingsFile = File("settings.json")
     val settings = loadSettings(settingsFile)
     if (settings == null) {
-        JOptionPane.showMessageDialog(
-            null,
-            "Please make sure all the fields in '${settingsFile.absolutePath}' are filled in correctly.",
-            Constants.APP_NAME,
-            JOptionPane.INFORMATION_MESSAGE
-        )
         isRunning.value = false
         return
     }
@@ -116,9 +112,18 @@ fun App(isRunning: MutableState<Boolean> = mutableStateOf(true)) {
 
 @OptIn(ExperimentalSerializationApi::class)
 fun loadSettings(settingsFile: File): Settings? {
+    settings?.let { return it }
+
     if (!settingsFile.exists() || settingsFile.isDirectory) {
         settingsFile.createNewFile()
         json.encodeToStream(value = Settings(), stream = FileOutputStream(settingsFile))
+
+        JOptionPane.showMessageDialog(
+            null,
+            "Please make sure all the fields in '${settingsFile.absolutePath}' are filled in correctly.",
+            Constants.APP_NAME,
+            JOptionPane.INFORMATION_MESSAGE
+        )
 
         return null
     }

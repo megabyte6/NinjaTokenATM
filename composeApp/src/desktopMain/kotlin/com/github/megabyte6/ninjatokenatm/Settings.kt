@@ -22,6 +22,10 @@ data class Settings(
     var rfidScannerHitsEnter: Boolean = true,
     var darkTheme: Boolean = true
 ) {
+    companion object {
+        val EMPTY = Settings()
+    }
+
     /**
      * @throws FileNotFoundException if the ninjaTokenWorkbookPath passed does not exist nor points to a file
      * @throws EncryptedDocumentException if the workbook is encrypted

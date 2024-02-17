@@ -6,15 +6,19 @@ import com.github.megabyte6.ninjatokenatm.App
 import com.github.megabyte6.ninjatokenatm.Constants
 
 
-fun main() = application {
-    val isRunning = remember { mutableStateOf(true) }
-    if (!isRunning.value) exitApplication()
+fun main() {
+    val app = App()
 
-    Window(
-        onCloseRequest = ::exitApplication,
-        title = Constants.APP_NAME
-    ) {
-        App(isRunning)
+    application {
+        val isRunning = remember { mutableStateOf(true) }
+        if (!isRunning.value) exitApplication()
+
+        Window(
+            onCloseRequest = ::exitApplication,
+            title = Constants.APP_NAME
+        ) {
+            app.MainActivity(isRunning)
+        }
     }
 }
 

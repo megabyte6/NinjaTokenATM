@@ -26,125 +26,128 @@ import java.io.FileOutputStream
 import javax.swing.JOptionPane
 
 
-private val json = Json {
-    encodeDefaults = true
-    prettyPrint = true
-}
+class App {
+    companion object {
+        private val json = Json {
+            encodeDefaults = true
+            prettyPrint = true
+        }
 
-private val settingsFile = File("settings.json")
-private var settings: Settings? = null
-
-@Composable
-fun App(isRunning: MutableState<Boolean> = mutableStateOf(true)) {
-    val settings = loadSettings(settingsFile)
-    if (settings == null) {
-        isRunning.value = false
-        return
+        private val settingsFile = File("settings.json")
     }
 
-    val ninjaManager = NinjaManager(settings = settings)
+    private val settings: Settings = loadSettings()
 
-    AppTheme(useDarkTheme = settings.darkTheme) {
-        val focusRequester = remember { FocusRequester() }
+    @Composable
+    fun MainActivity(isRunning: MutableState<Boolean> = mutableStateOf(true)) {
+        if (settings == Settings.EMPTY) {
+            isRunning.value = false
+            return
+        }
 
-        var rfid by remember { mutableStateOf("") }
+        val ninjaManager = NinjaManager(settings = settings)
 
-        var ninjaName by remember { mutableStateOf(Strings.DEFAULT_STARTUP_MESSAGE) }
-        var ninjaTokens by remember { mutableStateOf(0) }
+        AppTheme(useDarkTheme = settings.darkTheme) {
+            val focusRequester = remember { FocusRequester() }
 
-        Surface {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxSize()
-            ) {
+            var rfid by remember { mutableStateOf("") }
+
+            var ninjaName by remember { mutableStateOf(Strings.DEFAULT_STARTUP_MESSAGE) }
+            var ninjaTokens by remember { mutableStateOf(0) }
+
+            Surface {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f, true)
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    Text(
-                        text = ninjaName,
-                        fontSize = 50.sp,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = ninjaTokens.toString(),
-                        fontSize = 80.sp,
-                    )
-                }
-                TextField(
-                    value = rfid,
-                    singleLine = true,
-                    onValueChange = {
-                        rfid = it
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f, true)
+                    ) {
+                        Text(
+                            text = ninjaName,
+                            fontSize = 50.sp,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Text(
+                            text = ninjaTokens.toString(),
+                            fontSize = 80.sp,
+                        )
+                    }
+                    TextField(
+                        value = rfid,
+                        singleLine = true,
+                        onValueChange = {
+                            rfid = it
 
-                        if (settings.rfidLength != 0 && it.length >= settings.rfidLength) {
-                            ninjaName = ninjaManager.findName(rfid = rfid)
-                            ninjaTokens = ninjaManager.findBalance(rfid = rfid)
-                            rfid = ""
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp)
-                        .focusRequester(focusRequester)
-                        .onKeyEvent {
-                            if (settings.rfidScannerHitsEnter && it.key == Key.Enter) {
+                            if (settings.rfidLength != 0 && it.length >= settings.rfidLength) {
                                 ninjaName = ninjaManager.findName(rfid = rfid)
                                 ninjaTokens = ninjaManager.findBalance(rfid = rfid)
                                 rfid = ""
-                                true
-                            } else {
-                                false
                             }
-                        }
-                )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp)
+                            .focusRequester(focusRequester)
+                            .onKeyEvent {
+                                if (settings.rfidScannerHitsEnter && it.key == Key.Enter) {
+                                    ninjaName = ninjaManager.findName(rfid = rfid)
+                                    ninjaTokens = ninjaManager.findBalance(rfid = rfid)
+                                    rfid = ""
+                                    true
+                                } else {
+                                    false
+                                }
+                            }
+                    )
 
-                LaunchedEffect(Unit) {
-                    focusRequester.requestFocus()
+                    LaunchedEffect(Unit) {
+                        focusRequester.requestFocus()
+                    }
                 }
             }
         }
     }
-}
 
-@OptIn(ExperimentalSerializationApi::class)
-fun loadSettings(settingsFile: File): Settings? {
-    settings?.let { return it }
+    @OptIn(ExperimentalSerializationApi::class)
+    private fun loadSettings(): Settings {
+        if (!settingsFile.exists() || settingsFile.isDirectory) {
+            settingsFile.createNewFile()
+            json.encodeToStream(value = Settings(), stream = FileOutputStream(settingsFile))
 
-    if (!settingsFile.exists() || settingsFile.isDirectory) {
-        settingsFile.createNewFile()
-        json.encodeToStream(value = Settings(), stream = FileOutputStream(settingsFile))
+            JOptionPane.showMessageDialog(
+                null,
+                "Please make sure all the fields in '${settingsFile.absolutePath}' are filled in correctly.",
+                Constants.APP_NAME,
+                JOptionPane.INFORMATION_MESSAGE
+            )
 
-        JOptionPane.showMessageDialog(
-            null,
-            "Please make sure all the fields in '${settingsFile.absolutePath}' are filled in correctly.",
-            Constants.APP_NAME,
-            JOptionPane.INFORMATION_MESSAGE
-        )
-
-        return null
-    }
-
-    return json.decodeFromStream<Settings>(FileInputStream(settingsFile)).takeIf { validateSettings(it) }
-}
-
-fun validateSettings(settings: Settings): Boolean {
-    try {
-        settings.validate()
-        return true
-    } catch (e: Exception) {
-        when (e) {
-            is FileNotFoundException,
-            is EncryptedDocumentException,
-            is EmptyFileException,
-            is SheetNotFoundException,
-            is SheetColumnNotFoundException -> e.message?.let {
-                JOptionPane.showMessageDialog(null, it, Constants.APP_NAME, JOptionPane.ERROR_MESSAGE)
-            }
+            return Settings.EMPTY
         }
+
+        fun validateSettings(settings: Settings): Boolean {
+            try {
+                settings.validate()
+                return true
+            } catch (e: Exception) {
+                when (e) {
+                    is FileNotFoundException,
+                    is EncryptedDocumentException,
+                    is EmptyFileException,
+                    is SheetNotFoundException,
+                    is SheetColumnNotFoundException -> e.message?.let {
+                        JOptionPane.showMessageDialog(null, it, Constants.APP_NAME, JOptionPane.ERROR_MESSAGE)
+                    }
+                }
+            }
+            return false
+        }
+
+        return json.decodeFromStream<Settings>(FileInputStream(settingsFile)).takeIf { validateSettings(it) }
+            ?: Settings.EMPTY
     }
-    return false
 }

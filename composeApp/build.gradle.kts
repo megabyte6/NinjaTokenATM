@@ -46,7 +46,7 @@ compose.desktop {
                 TargetFormat.Rpm
             )
             packageName = "Ninja Token ATM"
-            packageVersion = "1.0.0"
+            packageVersion = "1.0.1"
             description = "Ninja Token ATM"
             vendor = "Brayden Chan"
             copyright = "© 2024 Brayden Chan. All rights reserved."

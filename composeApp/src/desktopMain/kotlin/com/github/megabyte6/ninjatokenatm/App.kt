@@ -32,7 +32,9 @@ private val json = Json {
 }
 
 private val settingsFile = File("settings.json")
-private lateinit var settings: Settings
+private val settings: Settings by lazy {
+    loadSettings() ?: Settings.EMPTY
+}
 private val ninjaManager: NinjaManager by lazy {
     NinjaManager(settings = settings)
 }
@@ -51,11 +53,6 @@ fun App(isRunning: MutableState<Boolean> = mutableStateOf(true)) {
         var ninjaTokens by remember { mutableStateOf(0) }
 
         LaunchedEffect(Unit) {
-            settings = loadSettings() ?: Settings.EMPTY
-            if (settings == Settings.EMPTY) {
-                return@LaunchedEffect
-            }
-
             focusRequester.requestFocus()
         }
 

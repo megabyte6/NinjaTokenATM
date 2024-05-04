@@ -13,6 +13,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.megabyte6.ninjatokenatm.ui.theme.AppTheme
+import kotlinx.coroutines.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
@@ -39,6 +40,7 @@ private val ninjaManager: NinjaManager by lazy {
     NinjaManager(settings = settings)
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 @Composable
 fun App(isRunning: MutableState<Boolean> = mutableStateOf(true)) {
     if (settings == Settings.EMPTY) isRunning.value = false
@@ -47,10 +49,12 @@ fun App(isRunning: MutableState<Boolean> = mutableStateOf(true)) {
     AppTheme(useDarkTheme = settings.darkTheme) {
         val focusRequester = remember { FocusRequester() }
 
-        var rfid by remember { mutableStateOf("") }
+        var id by remember { mutableStateOf("") }
 
         var ninjaName by remember { mutableStateOf(Strings.DEFAULT_STARTUP_MESSAGE) }
         var ninjaTokens by remember { mutableStateOf(0) }
+
+        var resetNinjaNameText: Job? by remember { mutableStateOf(null) }
 
         LaunchedEffect(Unit) {
             focusRequester.requestFocus()
@@ -79,15 +83,24 @@ fun App(isRunning: MutableState<Boolean> = mutableStateOf(true)) {
                     )
                 }
                 TextField(
-                    value = rfid,
+                    value = id,
                     singleLine = true,
                     onValueChange = {
-                        rfid = it
+                        id = it
 
-                        if (settings.rfidLength != 0 && it.length >= settings.rfidLength) {
-                            ninjaName = ninjaManager.findName(rfid = rfid)
-                            ninjaTokens = ninjaManager.findBalance(rfid = rfid)
-                            rfid = ""
+                        resetNinjaNameText?.cancel()
+                        resetNinjaNameText = GlobalScope.launch {
+                            delay(30000)
+                            ninjaName = Strings.DEFAULT_STARTUP_MESSAGE
+                        }
+
+                        if (!settings.rfidScannerHitsEnter
+                            && settings.rfidLength != 0
+                            && it.length >= settings.rfidLength
+                        ) {
+                            ninjaName = ninjaManager.findNameFromRFID(rfid = id)
+                            ninjaTokens = ninjaManager.findBalanceByRFID(rfid = id)
+                            id = ""
                         }
                     },
                     modifier = Modifier
@@ -96,9 +109,19 @@ fun App(isRunning: MutableState<Boolean> = mutableStateOf(true)) {
                         .focusRequester(focusRequester)
                         .onKeyEvent {
                             if (settings.rfidScannerHitsEnter && it.key == Key.Enter) {
-                                ninjaName = ninjaManager.findName(rfid = rfid)
-                                ninjaTokens = ninjaManager.findBalance(rfid = rfid)
-                                rfid = ""
+                                ninjaName = if (ninjaManager.nameExists(name = id)) {
+                                    // Use this to find proper cased name.
+                                    ninjaManager.findNameFromRFID(rfid = ninjaManager.findRFIDFromName(name = id))
+                                } else {
+                                    ninjaManager.findNameFromRFID(rfid = id)
+                                }
+                                ninjaTokens = if (ninjaManager.rfidExists(rfid = id)) {
+                                    ninjaManager.findBalanceByRFID(rfid = id)
+                                } else {
+                                    ninjaManager.findBalanceByName(name = id)
+                                }
+                                id = ""
+
                                 true
                             } else {
                                 false

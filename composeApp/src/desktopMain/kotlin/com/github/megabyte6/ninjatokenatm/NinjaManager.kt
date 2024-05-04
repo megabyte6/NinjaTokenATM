@@ -10,7 +10,10 @@ import java.io.FileInputStream
 class NinjaManager(val settings: Settings) {
     // Cache of previously searched Ninjas.
     // Holds a Map of the ninja's RFID to the corresponding row.
-    private val cache = mutableMapOf<String, Int>()
+    private val rfidCache = mutableMapOf<String, Int>()
+
+    // Holds a Map of the ninja's lowercased name to the corresponding row.
+    private val nameCache = mutableMapOf<String, Int>()
 
     private val ninjaTokenSheet: Sheet = WorkbookFactory.create(FileInputStream(settings.ninjaTokenWorkbookPath))!!
         .getSheet(settings.sheet)
@@ -42,14 +45,37 @@ class NinjaManager(val settings: Settings) {
 
     private fun findRowByRFID(rfid: String) =
         ninjaTokenSheet.firstOrNull { it.stringContentsOfCell(rfidColumn) == rfid }
-            ?.also { cache[rfid] = it.rowNum }
+            ?.also {
+                rfidCache[rfid] = it.rowNum
+                nameCache[it.stringContentsOfCell(ninjaNameColumn).lowercase()] = it.rowNum
+            }
+
+    private fun findRowByName(name: String) =
+        ninjaTokenSheet.firstOrNull { it.stringContentsOfCell(ninjaNameColumn).lowercase() == name.lowercase() }
+            ?.also {
+                nameCache[name.lowercase()] = it.rowNum
+                rfidCache[it.stringContentsOfCell(rfidColumn)] = it.rowNum
+            }
 
     private fun findCachedRowByRFID(rfid: String) =
-        cache[rfid]?.let { ninjaTokenSheet.getRow(it) } ?: findRowByRFID(rfid)
+        rfidCache[rfid]?.let { ninjaTokenSheet.getRow(it) } ?: findRowByRFID(rfid)
 
-    fun findName(rfid: String) =
+    private fun findCachedRowByName(name: String) =
+        nameCache[name.lowercase()]?.let { ninjaTokenSheet.getRow(it) } ?: findRowByName(name)
+
+    fun rfidExists(rfid: String) = findCachedRowByRFID(rfid) != null
+
+    fun nameExists(name: String) = findCachedRowByName(name) != null
+
+    fun findNameFromRFID(rfid: String) =
         findCachedRowByRFID(rfid)?.stringContentsOfCell(ninjaNameColumn) ?: Strings.INVALID_RFID_MESSAGE
 
-    fun findBalance(rfid: String) =
+    fun findRFIDFromName(name: String) =
+        findCachedRowByName(name)?.stringContentsOfCell(rfidColumn) ?: Strings.INVALID_RFID_MESSAGE
+
+    fun findBalanceByRFID(rfid: String) =
         findCachedRowByRFID(rfid)?.stringContentsOfCell(ninjaBalanceColumn)?.toDoubleOrNull()?.toInt() ?: 0
+
+    fun findBalanceByName(name: String) =
+        findCachedRowByName(name)?.stringContentsOfCell(ninjaBalanceColumn)?.toDoubleOrNull()?.toInt() ?: 0
 }
